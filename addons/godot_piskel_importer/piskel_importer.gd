@@ -88,10 +88,17 @@ func import(source_file, save_path, options, r_platform_variants, r_gen_files):
 
 # Taken from https://github.com/lifelike/godot-animator-import
 func save_stex(image, save_path):
+	var tmppng = "%s-tmp.png" % [save_path]
+	image.save_png(tmppng)
+	var pngf = File.new()
+	pngf.open(tmppng, File.READ)
+	var pnglen = pngf.get_len()
+	var pngdata = pngf.get_buffer(pnglen)
+	pngf.close()
+	Directory.new().remove(tmppng)
+
 	var stexf = File.new()
-	var err = stexf.open("%s.stex" % [save_path], File.WRITE)
-	if err:
-		return err
+	stexf.open("%s.stex" % [save_path], File.WRITE)
 	stexf.store_8(0x47) # G
 	stexf.store_8(0x44) # D
 	stexf.store_8(0x53) # S
@@ -101,11 +108,10 @@ func save_stex(image, save_path):
 	stexf.store_32(0) # flags: Disable all of it as we're dealing with pixel-perfect images
 	stexf.store_32(0x07100000) # data format
 	stexf.store_32(1) # nr mipmaps
-	stexf.store_32(image.get_data().get_len() + 6)
+	stexf.store_32(pnglen + 6)
 	stexf.store_8(0x50) # P
 	stexf.store_8(0x4e) # N
 	stexf.store_8(0x47) # G
 	stexf.store_8(0x20) # space
-	stexf.store_buffer(image.get_data())
+	stexf.store_buffer(pngdata)
 	stexf.close()
-	return OK
