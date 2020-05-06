@@ -1,0 +1,111 @@
+tool
+extends EditorImportPlugin
+
+func get_importer_name():
+	return "com.technohacker.piskel"
+
+func get_visible_name():
+	return "Piskel Project"
+
+func get_recognized_extensions():
+	return ["piskel"]
+
+# We save directly to stex because ImageTexture doesn't work for some reason
+func get_save_extension():
+	return "stex"
+
+func get_resource_type():
+	return "StreamTexture"
+
+func get_import_options(preset):
+	return []
+
+func get_preset_count():
+	return 0
+
+func import(source_file, save_path, options, r_platform_variants, r_gen_files):
+	"""
+	Main import function. Reads the Piskel project and extracts the PNG image from it
+	"""
+	
+	# Open the Piskel project file
+	var file = File.new()
+	var err = file.open(source_file, File.READ)
+	if err != OK:
+		printerr("Piskel Project file not found")
+		return err
+
+	# Parse it as JSON
+	var text = file.get_as_text()
+	var json = JSON.parse(text)
+
+	if json.error != OK:
+		printerr("JSON Parse Error")
+		return json.error
+
+	var project = json.result;
+
+	# Make sure it's a JSON Object
+	if typeof(project) != TYPE_DICTIONARY:
+		printerr("Invalid Piskel project file")
+		return ERR_FILE_UNRECOGNIZED;
+
+	# For sanity, keep a version check
+	if project.modelVersion != 2:
+		printerr("Invalid Piskel project version")
+		return ERR_FILE_UNRECOGNIZED;
+
+	# Extract the first layer. It's encoded as an escaped JSON string
+	var layer = project.piskel.layers[0];
+	# Remove any escape backslashes
+	layer = (layer as String).replace("\\", "")
+
+	# Parse it
+	layer = JSON.parse(layer)
+	
+	if layer.error != OK:
+		return layer.error
+		
+	layer = layer.result
+
+	var base64 = preload("base64.gd")
+
+	# Get the base64 encoded image. It's always PNG (atleast in version 2 of the file)
+	var dataURI = layer.chunks[0].base64PNG.split(",")
+	var b64png = dataURI[dataURI.size() - 1]
+
+	# Decode the PNG
+	var png = base64.decode(b64png)
+
+	# Parse the PNG from the buffer
+	var img = Image.new()
+	err = img.load_png_from_buffer(png)
+	
+	if err:
+		return err
+
+	return save_stex(img, save_path)
+
+# Taken from https://github.com/lifelike/godot-animator-import
+func save_stex(image, save_path):
+	var stexf = File.new()
+	var err = stexf.open("%s.stex" % [save_path], File.WRITE)
+	if err:
+		return err
+	stexf.store_8(0x47) # G
+	stexf.store_8(0x44) # D
+	stexf.store_8(0x53) # S
+	stexf.store_8(0x54) # T
+	stexf.store_32(image.get_width())
+	stexf.store_32(image.get_height())
+	stexf.store_32(0) # flags: Disable all of it as we're dealing with pixel-perfect images
+	stexf.store_32(0x07100000) # data format
+	stexf.store_32(1) # nr mipmaps
+	stexf.store_32(image.get_data().get_len() + 6)
+	stexf.store_8(0x50) # P
+	stexf.store_8(0x4e) # N
+	stexf.store_8(0x47) # G
+	stexf.store_8(0x20) # space
+	stexf.store_buffer(image.get_data())
+	stexf.close()
+	return OK
