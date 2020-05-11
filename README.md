@@ -1,3 +1,5 @@
+![](https://github.com/Technohacker/godot_piskel_importer/raw/master/icon.png "Logo")
+
 # Godot Piskel Importer
 
 Imports `.piskel` files from [Piskel](https://piskelapp.com/) to [Godot](https://godotengine.org/) without requiring an export for quicker changes in Godot
