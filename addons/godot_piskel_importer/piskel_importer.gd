@@ -55,36 +55,44 @@ func import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		printerr("Invalid Piskel project version")
 		return ERR_FILE_UNRECOGNIZED;
 
+	# Prepare an Image
+	var final_image = null
+
 	# Extract the first layer. It's encoded as an escaped JSON string
-	var layer = project.piskel.layers[0];
-	# Remove any escape backslashes
-	layer = (layer as String).replace("\\", "")
+	for layer in project.piskel.layers:
+		# Remove any escape backslashes
+		layer = (layer as String).replace("\\", "")
 
-	# Parse it
-	layer = JSON.parse(layer)
-	
-	if layer.error != OK:
-		return layer.error
-		
-	layer = layer.result
+		# Parse it
+		layer = JSON.parse(layer)
 
-	var base64 = preload("base64.gd")
+		if layer.error != OK:
+			return layer.error
 
-	# Get the base64 encoded image. It's always PNG (atleast in version 2 of the file)
-	var dataURI = layer.chunks[0].base64PNG.split(",")
-	var b64png = dataURI[dataURI.size() - 1]
+		layer = layer.result
 
-	# Decode the PNG
-	var png = base64.decode(b64png)
+		var base64 = preload("base64.gd")
 
-	# Parse the PNG from the buffer
-	var img = Image.new()
-	err = img.load_png_from_buffer(png)
-	
-	if err:
-		return err
+		# Get the base64 encoded image. It's always PNG (atleast in version 2 of the file)
+		var dataURI = layer.chunks[0].base64PNG.split(",")
+		var b64png = dataURI[dataURI.size() - 1]
 
-	return save_stex(img, save_path)
+		# Decode the PNG
+		var png = base64.decode(b64png)
+
+		# Parse the PNG from the buffer
+		var img = Image.new()
+		err = img.load_png_from_buffer(png)
+
+		if err:
+			return err
+
+		if final_image == null:
+			final_image = img
+		else:
+			final_image.blend_rect(img, Rect2(0, 0, img.get_width(), img.get_height()), Vector2.ZERO)
+
+	return save_stex(final_image, save_path)
 
 # Taken from https://github.com/lifelike/godot-animator-import
 func save_stex(image, save_path):

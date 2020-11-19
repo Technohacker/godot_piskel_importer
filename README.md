@@ -6,7 +6,7 @@ Imports `.piskel` files from [Piskel](https://piskelapp.com/) to [Godot](https:/
 
 ## Status
 
-Only the first layer (which includes every frame) is exported as a `1xN` StreamTexture PNG with the 2D Pixel Texture preset
+All layers are overlaid into one image (layer opacity not supported yet) as a `1xN` StreamTexture PNG with the 2D Pixel Texture preset
 
 ## Usage
 
