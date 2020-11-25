@@ -71,14 +71,12 @@ func import(source_file, save_path, options, r_platform_variants, r_gen_files):
 
 		layer = layer.result
 
-		var base64 = preload("base64.gd")
-
 		# Get the base64 encoded image. It's always PNG (atleast in version 2 of the file)
 		var dataURI = layer.chunks[0].base64PNG.split(",")
 		var b64png = dataURI[dataURI.size() - 1]
 
 		# Decode the PNG
-		var png = base64.decode(b64png)
+		var png = Marshalls.base64_to_raw(b64png)
 
 		# Parse the PNG from the buffer
 		var img = Image.new()
