@@ -2,11 +2,11 @@
 
 # Godot Piskel Importer
 
-Imports `.piskel` files from [Piskel](https://piskelapp.com/) to [Godot](https://godotengine.org/) without requiring an export for quicker changes in Godot
+Imports `.piskel` files from [Piskel](https://piskelapp.com/) to [Godot 4.x](https://godotengine.org/) without requiring an export for quicker changes in Godot
 
 ## Status
 
-All layers are overlaid into one image (layer opacity not supported yet) as a `1xN` StreamTexture PNG with the 2D Pixel Texture preset
+All layers are overlaid into one image (layer opacity not supported yet) as a `1xN` ImageTexture PNG
 
 ## Usage
 
