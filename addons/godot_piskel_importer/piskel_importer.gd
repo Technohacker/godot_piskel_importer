@@ -14,7 +14,7 @@ func _get_save_extension():
 	return "tres"
 
 func _get_resource_type():
-	return "StreamTexture"
+	return "ImageTexture"
 
 func _get_import_options(path, preset_index):
 	return []
